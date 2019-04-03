@@ -39,7 +39,6 @@ THANKS TO...
  - VERCAS for the inspiration.
 ]]
 
-
 local pon = {}
 _G.pon = pon
 
@@ -193,7 +192,7 @@ do
 	end
 
 	do
-		local empty, concat = table.Empty, table.concat
+		local concat = table.concat
 		function pon.encode( tbl )
 			local output = {}
 			cacheSize = 0
@@ -303,6 +302,7 @@ do
 		cache[ #cache + 1 ] = res
 		return index, res
 	end
+	decode['`'] = decode['\'']
 
 	decode['!'] = function( self, index, str, cache )
 		return index, nil
@@ -399,13 +399,10 @@ do
 		return index + 1, nil;
 	end
 
-	function pon.decode( data )
-		if (!isstring(data)) then
-			ErrorNoHalt("[pON] You must deserialize a string, not "..type(data).."!\n")
-			return {}
-		end
+	function pon.decode(data)
+		assert(isstring(data), "[pON] You must deserialize a string, not "..type(data).."!\n", {})
 
-		local _, res = decode[sub(data,1,1)]( decode, 2, data, {})
+		local _, res = decode[sub(data, 1, 1)](decode, 2, data, {})
 		return res
 	end
 end

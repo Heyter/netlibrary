@@ -8,13 +8,13 @@
 		https://github.com/thelastpenguin/gLUA-Library/tree/master/pON
 --]]
 
-local _player, util, type, pcall, pairs, ErrorNoHalt, net = player, util, type, pcall, pairs, ErrorNoHalt, net
+local _player, util, type, pcall, ErrorNoHalt, net = player, util, type, pcall, ErrorNoHalt, net
 
 if (!pon) then
-	include("pon.lua")
+	include("sh_pon.lua")
 end
 
-AddCSLuaFile();
+AddCSLuaFile()
 
 netstream = netstream or {}
 
@@ -69,7 +69,7 @@ end
 if (DBugR) then
 	local oldDS = netstream.Hook
 
-	for name, func in pairs(stored) do
+	for name, func in next, stored do
 		stored[name] = nil
 
 		oldDS(name, DBugR.Util.Func.AttachProfiler(func, function(time)
