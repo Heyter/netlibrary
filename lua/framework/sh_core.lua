@@ -1,20 +1,17 @@
 -- # A function to include files in a directory.
-function util.IncludeDirectory(directory, base)
-	if (base) then
-		directory = "framework/"..directory
+local function IncludeDirectory(directory)
+	directory = "framework/" .. directory
+
+	if (directory:sub(-1) ~= "/") then
+		directory = directory .. "/";
 	end
-	
-	if (string.sub(directory, -1) != "/") then
-		directory = directory.."/";
-	end
-	
-	local files, _ = file.Find(directory.."*.lua", "LUA", "namedesc")
-	for k, v in ipairs(files) do
-		util.Include(directory..v)
+
+	for k, v in ipairs(file.Find(directory .. "*.lua", "LUA", "namedesc")) do
+		netlibs.util.include(directory .. v)
 	end
 end
 
-util.IncludeDirectory("plugins/netwrapper", true)
-util.IncludeDirectory("plugins/tables", true)
+IncludeDirectory("plugins/netwrapper")
+IncludeDirectory("plugins/classes")
 
-util.IncludeDirectory = nil
+IncludeDirectory = nil

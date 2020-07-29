@@ -1,47 +1,51 @@
-netlibs = netlibs or {};
-netlibs.Core = netlibs.Core or {};
-netlibs.Libs = netlibs.Libs or {};
+netlibs = netlibs or {util = {}}
 
-netlibs.startTime = os.clock();
+local start_time = os.clock();
 netlibs.prefix = "[Netlibrary]"
 
 if (netlibs.initialized) then
-	MsgC(Color(0, 255, 100, 255), ""..netlibs.prefix.." Lua auto-reload in progress...\n")
+	MsgC(Color(0, 255, 100, 255), netlibs.prefix .. " Lua auto-reload in progress...\n")
 else
-	MsgC(Color(0, 255, 100, 255), ""..netlibs.prefix.." Initializing...\n")
+	MsgC(Color(0, 255, 100, 255), netlibs.prefix .. " Initializing...\n")
 end
 
 -- A function to include a file based on its prefix.
-function util.Include(name)
-	-- We sort files based on their name or prefix.
-	local server = (string.find(name, "sv_") or string.find(name, "init.lua"))
-	local client = (string.find(name, "cl_") or string.find(name, "cl_init.lua"))
-	local shared = (string.find(name, "sh_") or string.find(name, "shared.lua"))
-	
-	if (server and !SERVER) then return end
-	
-	if (shared and SERVER) then
-		AddCSLuaFile(name)
-	elseif (client and SERVER) then
-		AddCSLuaFile(name)
-		return
+function netlibs.util.include(fileName, realm)
+	if (!fileName) then
+		error(netlibs.prefix .. " No file name specified for including.")
 	end
-	
-	include(name)
+
+	if ((realm == "server" or fileName:find("sv_")) and SERVER) then
+		return include(fileName)
+	elseif (realm == "shared" or fileName:find("shared.lua") or fileName:find("sh_")) then
+		if (SERVER) then
+			AddCSLuaFile(fileName)
+		end
+
+		return include(fileName)
+	elseif (realm == "client" or fileName:find("cl_")) then
+		if (SERVER) then
+			AddCSLuaFile(fileName)
+		else
+			return include(fileName)
+		end
+	end
 end
 
-if (!string.utf8len or !pon or !netstream) then
-	util.Include("thirdparty/sh_pon.lua")
-	util.Include("thirdparty/sh_netstream.lua")
-	util.Include("thirdparty/sh_utf8.lua")
+if !(string.utf8len and pon and netstream) then
+	netlibs.util.include("thirdparty/sh_pon.lua")
+	netlibs.util.include("thirdparty/sh_netstream.lua")
+	netlibs.util.include("thirdparty/sh_utf8.lua")
 end
 
-util.Include("framework/sh_core.lua");
+netlibs.util.include("thirdparty/sh_tween.lua")
+netlibs.util.include("framework/sh_core.lua")
 
 if (netlibs.initialized) then
-	MsgC(Color(0, 255, 100, 255), ""..netlibs.prefix.." Auto-reloaded in "..math.Round(os.clock() - netlibs.startTime, 3).. " second(s)\n")
+	MsgC(Color(0, 255, 100, 255), netlibs.prefix .. " Auto-reloaded in " .. math.Round(os.clock() - start_time, 3) .. " second(s)\n")
 else
-	MsgC(Color(0, 255, 100, 255), ""..netlibs.prefix.." has finished loading in "..math.Round(os.clock() - netlibs.startTime, 3).. " second(s)\n")
+	MsgC(Color(0, 255, 100, 255), netlibs.prefix .. " has finished loading in " .. math.Round(os.clock() - start_time, 3) .. " second(s)\n")
 	netlibs.initialized = true
 end
-netlibs.startTime = nil
+
+start_time = nil

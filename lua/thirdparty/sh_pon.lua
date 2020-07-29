@@ -48,13 +48,12 @@ local format = string.format;
 
 do
 	local encode = {}
-	local tryCache
 	local cacheSize = 0
 
 	encode['table'] = function( self, tbl, output, cache )
 
-		if( cache[ tbl ] )then
-			output[ #output + 1 ] = '('..cache[tbl]..')'
+		if ( cache[ tbl ] ) then
+			output[ #output + 1 ] = '(' .. cache[tbl] .. ')'
 			return
 		else
 			cacheSize = cacheSize + 1
@@ -64,7 +63,7 @@ do
 		local nSize = #tbl
 		local kvSize = count( tbl ) - nSize
 
-		if( nSize == 0 and kvSize > 0 )then
+		if ( nSize == 0 and kvSize > 0 ) then
 			output[ #output + 1 ] = '['
 		else
 			output[ #output + 1 ] = '{'
@@ -78,10 +77,10 @@ do
 					end
 					local tv = type( v )
 					-- HANDLE POINTERS
-					if( tv == 'string' )then
+					if ( tv == 'string' ) then
 						local pid = cache[ v ]
-						if( pid )then
-							output[ #output + 1 ] = '('..pid..')'
+						if ( pid ) then
+							output[ #output + 1 ] = '(' .. pid .. ')'
 						else
 							cacheSize = cacheSize + 1
 							cache[ v ] = cacheSize
@@ -95,18 +94,18 @@ do
 			end
 		end
 
-		if( kvSize > 0 )then
-			if( nSize > 0 )then
+		if ( kvSize > 0 ) then
+			if ( nSize > 0 ) then
 				output[ #output + 1 ] = '~'
 			end
 			for k,v in next, tbl do
-				if( !isnumber(k) or k < 1 or k > nSize )then
+				if ( !isnumber(k) or k < 1 or k > nSize ) then
 					local tk, tv = type( k ), type( v )
 
 					-- THE KEY
-					if( tk == 'string' )then
+					if ( tk == 'string' ) then
 						local pid = cache[ k ]
-						if( pid )then
+						if ( pid ) then
 							output[ #output + 1 ] = '('..pid..')'
 						else
 							cacheSize = cacheSize + 1
@@ -119,10 +118,10 @@ do
 					end
 
 					-- THE VALUE
-					if( tv == 'string' )then
+					if ( tv == 'string' ) then
 						local pid = cache[ v ]
-						if( pid )then
-							output[ #output + 1 ] = '('..pid..')'
+						if ( pid ) then
+							output[ #output + 1 ] = '(' .. pid .. ')'
 						else
 							cacheSize = cacheSize + 1
 							cache[ v ] = cacheSize
@@ -141,24 +140,23 @@ do
 	--    ENCODE STRING
 	local gsub = string.gsub
 	encode['string'] = function( self, str, output )
-		--if tryCache( str, output ) then return end
-		local estr, count = gsub( str, ";", "\\;")
-		if( count == 0 )then
-			output[ #output + 1 ] = '\''..str..';'
+		local estr, _count = gsub( str, ';', "\\;")
+		if ( _count == 0 ) then
+			output[ #output + 1 ] = '\'' .. str .. ';'
 		else
-			output[ #output + 1 ] = '"'..estr..'";'
+			output[ #output + 1 ] = '"' .. estr .. '";'
 		end
 	end
 	--    ENCODE NUMBER
 	encode['number'] = function( self, num, output )
-		if num%1 == 0 then
+		if num % 1 == 0 then
 			if num < 0 then
 				output[ #output + 1 ] = format( 'x%x;', -num );
 			else
 				output[ #output + 1 ] = format('X%x;', num );
 			end
 		else
-			output[ #output + 1 ] = tonumber( num )..';';
+			output[ #output + 1 ] = tonumber( num ) .. ';';
 		end
 	end
 	--    ENCODE BOOLEAN
@@ -167,14 +165,14 @@ do
 	end
 	--    ENCODE VECTOR
 	encode['Vector'] = function( self, val, output )
-		output[ #output + 1 ] = ('v'..val.x..','..val.y)..(','..val.z..';')
+		output[ #output + 1 ] = ('v' .. val.x .. ',' .. val.y) .. (',' .. val.z .. ';')
 	end
 	--    ENCODE ANGLE
 	encode['Angle'] = function( self, val, output )
-		output[ #output + 1 ] = ('a'..val.p..','..val.y)..(','..val.r..';')
+		output[ #output + 1 ] = ('a' .. val.p .. ',' .. val.y) .. (',' .. val.r .. ';')
 	end
 	encode['Entity'] = function( self, val, output )
-		output[ #output + 1] = 'E'..(IsValid( val ) and (val:EntIndex( )..';') or '#')
+		output[ #output + 1] = 'E' .. (IsValid( val ) and (val:EntIndex( ) .. ';') or '#')
 	end
 	encode['Player']  = encode['Entity']
 	encode['Vehicle'] = encode['Entity']
@@ -182,22 +180,22 @@ do
 	encode['NPC']     = encode['Entity']
 	encode['NextBot'] = encode['Entity']
 	encode['PhysObj'] = encode['Entity']
-	
+
 	encode['nil'] = function()
 		output[ #output + 1 ] = '?';
 	end
 	encode.__index = function( key )
-		ErrorNoHalt('Type: '..key..' can not be encoded. Encoded as as pass-over value.');
+		ErrorNoHalt('Type: ' .. key .. ' can not be encoded. Encoded as as pass-over value.');
 		return encode['nil'];
 	end
 
 	do
 		local concat = table.concat
 		function pon.encode( tbl )
-			local output = {}
+			local _output = {}
 			cacheSize = 0
-			encode[ 'table' ]( encode, tbl, output, {} )
-			local res = concat( output )
+			encode[ 'table' ]( encode, tbl, _output, {} )
+			local res = concat( _output )
 
 			return res
 		end
@@ -205,7 +203,6 @@ do
 end
 
 do
-	local tonumber = tonumber
 	local find, sub, gsub, Explode = string.find, string.sub, string.gsub, string.Explode
 	local Vector, Angle, Entity = Vector, Angle, Entity
 
@@ -216,13 +213,13 @@ do
 		cache[ #cache + 1 ] = cur
 
 		local k, v, tk, tv = 1, nil, nil, nil
-		while( true )do
+		while ( true ) do
 			tv = sub( str, index, index )
-			if( not tv or tv == '~' )then
+			if ( ! tv or tv == '~' ) then
 				index = index + 1
 				break
 			end
-			if( tv == '}' )then
+			if ( tv == '}' ) then
 				return index + 1, cur
 			end
 
@@ -234,9 +231,9 @@ do
 			k = k + 1
 		end
 
-		while( true )do
+		while ( true ) do
 			tk = sub( str, index, index )
-			if( not tk or tk == '}' )then
+			if ( !tk or tk == '}' ) then
 				index = index + 1
 				break
 			end
@@ -262,9 +259,9 @@ do
 		cache[ #cache + 1 ] = cur
 
 		local k, v, tk, tv = 1, nil, nil, nil
-		while( true )do
+		while ( true ) do
 			tk = sub( str, index, index )
-			if( not tk or tk == '}' )then
+			if ( ! tk or tk == '}' ) then
 				index = index + 1
 				break
 			end
@@ -293,6 +290,14 @@ do
 		cache[ #cache + 1 ] = res
 		return index, res
 	end
+	decode['`'] = function( self, index, str, cache )
+		local finish = find( str, ';', index, true )
+		local res = sub( str, index, finish - 1 )
+		index = finish + 1
+
+		cache[ #cache + 1 ] = res
+		return index, res
+	end
 	-- STRING NO ESCAPING NEEDED
 	decode['\''] = function( self, index, str, cache )
 		local finish = find( str, ';', index, true )
@@ -302,7 +307,6 @@ do
 		cache[ #cache + 1 ] = res
 		return index, res
 	end
-	decode['`'] = decode['\'']
 
 	decode['!'] = function( self, index, str, cache )
 		return index, nil
@@ -327,7 +331,7 @@ do
 	decode['8'] = decode['n']
 	decode['9'] = decode['n']
 	decode['-'] = decode['n']
-	
+
 	-- positive hex
 	decode['X'] = function( self, index, str, cache )
 		local finish = find( str, ';', index, true );
@@ -377,7 +381,7 @@ do
 	end
 	-- ENTITY
 	decode[ 'E' ] = function( self, index, str, cache )
-		if( str[index] == '#' )then
+		if ( str[index] == '#' ) then
 			index = index + 1
 			return NULL
 		else
@@ -400,7 +404,10 @@ do
 	end
 
 	function pon.decode(data)
-		assert(isstring(data), "[pON] You must deserialize a string, not "..type(data).."!\n", {})
+		if (!isstring(data)) then
+			ErrorNoHalt("[pON] You must deserialize a string, not " .. type(data) .. "!\n")
+			return {}
+		end
 
 		local _, res = decode[sub(data, 1, 1)](decode, 2, data, {})
 		return res

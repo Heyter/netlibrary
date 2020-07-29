@@ -1,5 +1,5 @@
 -- # Micro-ops.
-local netlibs, next, nsStart = netlibs, next, netstream.Start
+local netlibs, pairs, nsStart = netlibs, pairs, netstream.Start
 
 local netvars = netlibs.netvars or {}
 netlibs.netvars = netvars
@@ -11,13 +11,11 @@ netvars.globals = globals
 
 -- # Check if there is an attempt to send a function. Can't send those.
 local function checkBadType(name, object)
-	local objectType = type(object)
-
-	if (objectType == "function") then
-		ErrorNoHalt("Net var '"..name.."' contains a bad object type!")
+	if (isfunction(object)) then
+		ErrorNoHalt("Net var '" .. name .. "' contains a bad object type!")
 		return true
-	elseif (objectType == "table") then
-		for k, v in next, object do
+	elseif (istable(object)) then
+		for k, v in pairs(object) do
 			-- # Check both the key and the value for tables, and has recursion.
 			if (checkBadType(name, k) or checkBadType(name, v)) then
 				return true
@@ -64,7 +62,7 @@ function entityMeta:setNetVar(key, value, bNoNetworking, recv)
 	if (stored[self][key] != value) then
 		stored[self][key] = value
 	end
-	
+
 	if (!bNoNetworking) then
 		self:sendNetVar(key, recv)
 	end
@@ -81,23 +79,26 @@ end
 
 -- # A function to send all current networked globals and entities' variables to a player.
 function playerMeta:syncNetVars()
-	for k, v in next, globals do
+	for k, v in pairs(globals) do
 		nsStart(self, "netlibs.netvar.global_set", k, v)
 	end
-	
-	for k, v in next, stored do
-		if IsValid(k) then
-			for k2, v2 in next, v do
-				nsStart(self, "netlibs.netvar.set", k:EntIndex(), k2, v2)
+
+	for entity, data in pairs(stored) do
+		if IsValid(entity) then
+			for k, v in pairs(data) do
+				nsStart(self, "netlibs.netvar.set", entity:EntIndex(), k, v)
 			end
 		end
 	end
 end
 
-hook.Add("EntityRemoved", "EntityRemoved.netvars", function(entity)
+local function clear_net_vars_fn(entity)
 	entity:clearNetVars()
-end)
+end
 
-hook.Add("PlayerInitialSpawn", "PlayerInitialSpawn.netvars", function(player)
-	player:syncNetVars()
+hook.Add("PlayerDisconnected", "PlayerDisconnected.netvar", clear_net_vars_fn)
+hook.Add("EntityRemoved", "EntityRemoved.netvars", clear_net_vars_fn)
+
+hook.Add("PlayerInitialSpawn", "PlayerInitialSpawn.netvars", function(client)
+	client:syncNetVars()
 end)
