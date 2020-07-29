@@ -39,6 +39,8 @@ if !(string.utf8len and pon and netstream) then
 end
 
 netlibs.util.include("thirdparty/sh_tween.lua")
+netlibs.util.include("thirdparty/sh_class.lua")
+
 netlibs.util.include("framework/sh_core.lua")
 
 if (netlibs.initialized) then
