@@ -78,12 +78,16 @@ if (SERVER) then
 			end
 		end
 
-		for k, v in ipairs(client) do
+		for k, v in pairs(client) do
 			if (type(v) == "Player") then
 				recipients[#recipients + 1] = v
-
-				bShouldSend = true
-			end
+				
+				bShouldSend = true;
+			elseif (type(k) == "Player") then
+				recipients[#recipients + 1] = k
+			
+				bShouldSend = true;
+			end;
 		end
 
 		local encodedData = pon.encode({...})
@@ -101,17 +105,6 @@ if (SERVER) then
 		netstream.Start = DBugR.Util.Func.AddDetour(netstream.Start, function(_, name, ...)
 			local encodedData = pon.encode({...})
 			DBugR.Profilers.Netstream:AddNetData(name, #encodedData)
-		end)
-	end
-
-	-- A function to listen for a request.
-	function netstream.Listen(name, Callback)
-		netstream.Hook(name, function(client, data)
-			local bShouldReply, reply = Callback(client, data)
-
-			if (bShouldReply) then
-				netstream.Start(client, name, reply)
-			end
 		end)
 	end
 
@@ -164,12 +157,6 @@ else
 
 			DBugR.Profilers.Netstream:AddNetData(name, #encodedData)
 		end)
-	end
-
-	-- A function to send a request.
-	function netstream.Request(name, data, Callback)
-		netstream.Hook(name, Callback)
-		netstream.Start(name, data)
 	end
 
 	net.Receive("NetStreamDS", function(length)

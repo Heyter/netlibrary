@@ -1,6 +1,6 @@
 netlibs = netlibs or {util = {}}
 
-local start_time = os.clock();
+local start_time = os.clock()
 netlibs.prefix = "[Netlibrary]"
 
 if (netlibs.initialized) then
@@ -29,6 +29,17 @@ function netlibs.util.include(fileName, realm)
 		else
 			return include(fileName)
 		end
+	end
+end
+
+-- A function to include files in a directory.
+function netlibs.util.include_directory(directory)
+	if (directory:sub(-1) ~= "/") then
+		directory = directory .. "/";
+	end
+
+	for k, v in ipairs(file.Find(directory .. "*.lua", "LUA", "namedesc")) do
+		netlibs.util.include(directory .. v)
 	end
 end
 
